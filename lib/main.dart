@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'dart:async';
+
 
 void main() => runApp(MyApp());
 
@@ -25,6 +28,28 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
+  Geolocator geolocator = Geolocator();
+  Position userLocation;
+
+  @override
+  void initState() {
+    super.initState();
+    _getLocations().then((position) {
+      userLocation = position;
+    });
+  }
+
+  Future<Position> _getLocations() async {
+    var currentLocation;
+    try {
+      currentLocation = await geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high
+      );
+    } catch (e) {
+      currentLocation = null;
+    }
+    return currentLocation;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +60,26 @@ class _MyHomePageState extends State<MyHomePage> {
         elevation: 1.0,
       ),
       body: Center(
-        child: Text("My location will be here"),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            userLocation == null
+                ? CircularProgressIndicator()
+                : Text(userLocation.latitude.toString()),
+            
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: RaisedButton(
+                onPressed: () => _getLocations().then((value) {
+                  setState(() {
+                    userLocation = value;
+                  });
+                }) ,
+                child: Text("Get Location"),
+              ),
+            )
+          ],          
+        )
       ),
     );
   }
