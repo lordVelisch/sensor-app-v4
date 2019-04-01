@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
-
+import 'package:latlong/latlong.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -27,19 +27,14 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   Geolocator geolocator = Geolocator();
   Position userLocation;
-  Position lastLocation;
 
   @override
   void initState() {
     super.initState();
-    setState(() {
-      _getLocations().then((position) {
+    _getLocations().then((position) {
+      setState(() {
         userLocation = position;
       });
-    });
-
-    _getLastKnowLocation().then((position) {
-      lastLocation = position;
     });
   }
 
@@ -54,56 +49,46 @@ class _MyHomePageState extends State<MyHomePage> {
     return currentLocation;
   }
 
-  Future<Position> _getLastKnowLocation() async {
-    var lastKnownLocation;
-    try {
-      lastKnownLocation = await geolocator.getLastKnownPosition(
-        desiredAccuracy: LocationAccuracy.best);
-
-    } catch (e) {
-      lastKnownLocation = null;
-    }
-    return lastKnownLocation;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        elevation: 1.0,
-      ),
-      body: Center(
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                _getPosition(),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: RaisedButton(
-                      onPressed: () {
-                        _getLocations().then((value) {
-                          setState(() {
-                            userLocation = value;
-                          });
-                        });
-                      },
-                      child: Text("Get Location")),
-                )
-              ])),
-    );
+        appBar: AppBar(
+          title: Text(widget.title),
+          elevation: 1.0,
+        ),
+        body: Center(
+            child: (userLocation != null)
+                ? _getMap()
+                : CircularProgressIndicator()));
   }
 
-  Widget _getPosition() {
-    Widget returnText = CircularProgressIndicator();
-    if (userLocation != null) {
-      returnText =  Text("Latitude: " + userLocation.latitude.toString() + ", Logitude: " + userLocation.longitude.toString() + ", Altitude: " +  userLocation.altitude.toString());
-    } else if (lastLocation != null && userLocation == null) {
-      returnText = Text("The last know Location is: " + "Latitude: " +
-          lastLocation.latitude.toString() + ", Longitude: " +
-          lastLocation.longitude.toString() + ", Altitude: " +
-          lastLocation.altitude.toString());
-    }
-    return returnText;
+  Widget _getMap() {
+    return FlutterMap(
+      options: MapOptions(
+          center: LatLng(userLocation.latitude, userLocation.longitude),
+          zoom: 14.0),
+      layers: [
+        TileLayerOptions(
+            urlTemplate:
+                "https://api.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}",
+            additionalOptions: {
+              'accessToken':
+                  'pk.eyJ1IjoibG9yZHZlbGlzY2giLCJhIjoiY2p0eXF2ZjNiMWxuYjN5bHo3eGw1c2xzZiJ9.oCPujMZX5MytQpGwN9c4Kg',
+              'id': 'mapbox.streets'
+            }),
+        new MarkerLayerOptions(
+          markers: [
+            new Marker(
+              width: 80.0,
+              height: 80.0,
+              point: new LatLng(userLocation.latitude, userLocation.longitude),
+              builder: (ctx) => new Container(
+                    child: Icon(Icons.my_location),
+                  ),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }
