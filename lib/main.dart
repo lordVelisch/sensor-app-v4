@@ -32,8 +32,10 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _getLocations().then((position) {
-      userLocation = position;
+    setState(() {
+      _getLocations().then((position) {
+        userLocation = position;
+      });
     });
 
     _getLastKnowLocation().then((position) {
@@ -93,12 +95,15 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _getPosition() {
+    Widget returnText = CircularProgressIndicator();
     if (userLocation != null) {
-      return Text("Latitude: " + userLocation.latitude.toString() + ", Logitude: " + userLocation.longitude.toString() + ", Altitude: " +  userLocation.altitude.toString());
+      returnText =  Text("Latitude: " + userLocation.latitude.toString() + ", Logitude: " + userLocation.longitude.toString() + ", Altitude: " +  userLocation.altitude.toString());
     } else if (lastLocation != null && userLocation == null) {
-      return Text ("The last know Location is: " +  "Latitude: " + lastLocation.latitude.toString() + ", Longitude: " +  lastLocation.longitude.toString() + ", Altitude: " + lastLocation.altitude.toString());
-    } else {
-      return CircularProgressIndicator();
+      returnText = Text("The last know Location is: " + "Latitude: " +
+          lastLocation.latitude.toString() + ", Longitude: " +
+          lastLocation.longitude.toString() + ", Altitude: " +
+          lastLocation.altitude.toString());
     }
+    return returnText;
   }
 }
