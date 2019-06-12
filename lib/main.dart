@@ -181,16 +181,3 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-/*
-class ListLocationsRoute extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text("Saved Locations"),
-        ),
-        body:
-    ),);
-  }
-}
-*/
