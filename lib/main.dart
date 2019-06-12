@@ -74,34 +74,41 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-            _getPosition(),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: RaisedButton(
-                  onPressed: () {
-                    _getLocations().then((value) {
-                      setState(() {
-                        userLocation = value;
-                      });
-                    });
-                  },
-                  child: Text("Get Location")),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: RaisedButton(
-                onPressed: _saveLocation,
-                child: Text("Save Location"),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: RaisedButton(
-                onPressed: _listLocation,
-                child: Text("List Locations"),
-              ),
-            )
-          ])),
+                _getPosition(),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: RaisedButton(
+                      onPressed: () {
+                        _getLocations().then((value) {
+                          setState(() {
+                            userLocation = value;
+                          });
+                        });
+                      },
+                      child: Text("Get Location")),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: RaisedButton(
+                    onPressed: _saveLocation,
+                    child: Text("Save Location"),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: RaisedButton(
+                    onPressed: _listLocation,
+                    child: Text("List Locations"),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: RaisedButton(
+                    onPressed: _deleteLocations,
+                    child: Text("Delete Locations"),
+                  ),
+                )
+              ])),
     );
   }
 
@@ -128,8 +135,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   _saveLocation() async {
     Location location = Location();
-    location.latitude = '2131324.1234';
-    location.longitude = '234234.21342';
+    location.latitude = userLocation.latitude.toString();
+    location.longitude = userLocation.longitude.toString();
     DatabaseHelper helper = DatabaseHelper.instance;
     int id = await helper.insert(location);
     print('inserted row: $id');
@@ -138,11 +145,52 @@ class _MyHomePageState extends State<MyHomePage> {
   _listLocation() async {
     DatabaseHelper helper = DatabaseHelper.instance;
     int rowId = 1;
-    Location location = await helper.queryLocation(rowId);
-    if (location == null) {
+    final locations = await helper.queryAllWords();
+    if (locations == null) {
+      //toast
       print('list row $rowId: empty');
     } else {
-      print('list row $rowId: ${location.longitude} ${location.latitude}');
+      while (rowId < locations.length + 1) {
+        print('list row $rowId: ${locations.elementAt(rowId - 1)}');
+        rowId++;
+      }
     }
+
+    Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text("Saved Locations"),
+        ),
+        body: locations != null ? ListView.builder(
+            itemCount: locations.length,
+            itemBuilder: (context, index) {
+              return ListTile(
+                title: Text("Latitude: ${locations.elementAt(index)[columnLatitude]}, Longitude: ${locations.elementAt(index)[columnLongitude]}"),
+              );
+            }) : 
+            Center(
+              child: Text("No entries yet"),
+            ),
+      );
+    }));
+  }
+
+  _deleteLocations() async {
+    DatabaseHelper helper = DatabaseHelper.instance;
+    helper.deleteAllLocations();
   }
 }
+
+/*
+class ListLocationsRoute extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("Saved Locations"),
+        ),
+        body:
+    ),);
+  }
+}
+*/

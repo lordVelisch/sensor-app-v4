@@ -97,8 +97,17 @@ class DatabaseHelper {
     return null;
   }
 
-// TODO: queryAllWords()
-// TODO: delete(int id)
-// TODO: update(Word word)
+  Future<List<Map<String, dynamic>>> queryAllWords() async {
+    Database db = await database;
+    final locations = db.query(tableLocations);
+    return locations;
+  }
+
+  deleteAllLocations() async {
+    Database db = await database;
+    db.delete(tableLocations);
+  }
+
+
 }
 
