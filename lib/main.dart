@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-
+import 'database_helper.dart';
 
 void main() => runApp(MyApp());
 
@@ -56,8 +56,7 @@ class _MyHomePageState extends State<MyHomePage> {
     var lastKnownLocation;
     try {
       lastKnownLocation = await geolocator.getLastKnownPosition(
-        desiredAccuracy: LocationAccuracy.best);
-
+          desiredAccuracy: LocationAccuracy.best);
     } catch (e) {
       lastKnownLocation = null;
     }
@@ -75,30 +74,75 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                _getPosition(),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: RaisedButton(
-                      onPressed: () {
-                        _getLocations().then((value) {
-                          setState(() {
-                            userLocation = value;
-                          });
-                        });
-                      },
-                      child: Text("Get Location")),
-                )
-              ])),
+            _getPosition(),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: RaisedButton(
+                  onPressed: () {
+                    _getLocations().then((value) {
+                      setState(() {
+                        userLocation = value;
+                      });
+                    });
+                  },
+                  child: Text("Get Location")),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: RaisedButton(
+                onPressed: _saveLocation,
+                child: Text("Save Location"),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: RaisedButton(
+                onPressed: _listLocation,
+                child: Text("List Locations"),
+              ),
+            )
+          ])),
     );
   }
 
   Widget _getPosition() {
     if (userLocation != null) {
-      return Text("Latitude: " + userLocation.latitude.toString() + ", Logitude: " + userLocation.longitude.toString() + ", Altitude: " +  userLocation.altitude.toString());
+      return Text("Latitude: " +
+          userLocation.latitude.toString() +
+          ", Logitude: " +
+          userLocation.longitude.toString() +
+          ", Altitude: " +
+          userLocation.altitude.toString());
     } else if (lastLocation != null && userLocation == null) {
-      return Text ("The last know Location is: " +  "Latitude: " + lastLocation.latitude.toString() + ", Longitude: " +  lastLocation.longitude.toString() + ", Altitude: " + lastLocation.altitude.toString());
+      return Text("The last know Location is: " +
+          "Latitude: " +
+          lastLocation.latitude.toString() +
+          ", Longitude: " +
+          lastLocation.longitude.toString() +
+          ", Altitude: " +
+          lastLocation.altitude.toString());
     } else {
       return CircularProgressIndicator();
+    }
+  }
+
+  _saveLocation() async {
+    Location location = Location();
+    location.latitude = '2131324.1234';
+    location.longitude = '234234.21342';
+    DatabaseHelper helper = DatabaseHelper.instance;
+    int id = await helper.insert(location);
+    print('inserted row: $id');
+  }
+
+  _listLocation() async {
+    DatabaseHelper helper = DatabaseHelper.instance;
+    int rowId = 1;
+    Location location = await helper.queryLocation(rowId);
+    if (location == null) {
+      print('list row $rowId: empty');
+    } else {
+      print('list row $rowId: ${location.longitude} ${location.latitude}');
     }
   }
 }
